@@ -1,0 +1,26 @@
+<div class="hero text-center p-5 mb-4 bg-body-tertiary rounded-3">
+  <h1>Tesco Control Web</h1>
+  <p class="lead">Built with Angular {{ angularVersion }}, migrated from AngularJS.</p>
+  <p [class]="'animate__animated animate__infinite ' + classAnimation()">
+    <button type="button" class="btn btn-lg btn-success" (click)="showToastr()">Splendid Toastr</button>
+  </p>
+  <p>
+    With &hearts; thanks to the contributions of
+    <app-typewriter [words]="typewriterWords()" />
+  </p>
+</div>
+
+<div class="row">
+  @for (tech of awesomeThings(); track tech.title) {
+    <div class="col-sm-6 col-md-4 mb-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <i class="bi {{ tech.icon }} fs-1 float-end text-primary" aria-hidden="true"></i>
+          <h3 class="card-title h5">{{ tech.title }}</h3>
+          <p class="card-text">{{ tech.description }}</p>
+          <a [href]="tech.url" target="_blank" rel="noopener" class="card-link">{{ tech.url }}</a>
+        </div>
+      </div>
+    </div>
+  }
+</div>
