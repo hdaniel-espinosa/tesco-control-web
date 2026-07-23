@@ -1,26 +1,54 @@
-<div class="hero text-center p-5 mb-4 bg-body-tertiary rounded-3">
-  <h1>Tesco Control Web</h1>
-  <p class="lead">Built with Angular {{ angularVersion }}, migrated from AngularJS.</p>
-  <p [class]="'animate__animated animate__infinite ' + classAnimation()">
-    <button type="button" class="btn btn-lg btn-success" (click)="showToastr()">Splendid Toastr</button>
+<div class="hero p-5 mb-4 bg-body-tertiary rounded-3">
+  <h1><i class="bi bi-door-open"></i> Control de acceso a laboratorios</h1>
+  <p class="lead">
+    Registra maestros, asigna tarjetas NFC y horarios, y consulta la bitácora de accesos a los
+    laboratorios de cómputo.
   </p>
-  <p>
-    With &hearts; thanks to the contributions of
-    <app-typewriter [words]="typewriterWords()" />
-  </p>
+  <div class="d-flex flex-wrap gap-2 mt-3">
+    <a routerLink="/maestros" class="btn btn-primary"><i class="bi bi-person-badge"></i> Maestros</a>
+    <a routerLink="/laboratorios" class="btn btn-outline-secondary"
+      ><i class="bi bi-building"></i> Laboratorios</a
+    >
+    <a routerLink="/materias" class="btn btn-outline-secondary"><i class="bi bi-journal-text"></i> Materias</a>
+    <a routerLink="/horarios" class="btn btn-outline-secondary"><i class="bi bi-calendar-week"></i> Horarios</a>
+    <a routerLink="/registros" class="btn btn-outline-secondary"><i class="bi bi-clock-history"></i> Bitácora</a>
+    <a routerLink="/acceso" class="btn btn-success"><i class="bi bi-credit-card-2-front"></i> Simular acceso</a>
+  </div>
 </div>
 
-<div class="row">
-  @for (tech of awesomeThings(); track tech.title) {
-    <div class="col-sm-6 col-md-4 mb-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <i class="bi {{ tech.icon }} fs-1 float-end text-primary" aria-hidden="true"></i>
-          <h3 class="card-title h5">{{ tech.title }}</h3>
-          <p class="card-text">{{ tech.description }}</p>
-          <a [href]="tech.url" target="_blank" rel="noopener" class="card-link">{{ tech.url }}</a>
+@if (cargando()) {
+  <p class="text-muted"><i class="bi bi-hourglass-split"></i> Cargando laboratorios...</p>
+} @else if (error()) {
+  <div class="alert alert-danger">
+    No se pudo conectar con la API. Verifica que el backend esté disponible.
+  </div>
+} @else if (laboratorios().length === 0) {
+  <div class="alert alert-info">
+    Aún no hay laboratorios registrados. <a routerLink="/laboratorios">Da de alta el primero</a>.
+  </div>
+} @else {
+  <div class="row">
+    @for (item of laboratorios(); track item.laboratorio.idLaboratorio) {
+      <div class="col-sm-6 col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h3 class="card-title h5">
+              <i class="bi bi-building text-primary"></i> {{ item.laboratorio.nombre }}
+            </h3>
+            <p class="card-text text-muted mb-1">
+              Edificio {{ item.laboratorio.edificio }} &middot; {{ item.laboratorio.nLugares }} lugares
+            </p>
+            @if (item.estado) {
+              <p class="card-text small">
+                <i class="bi bi-thermometer-half"></i> {{ item.estado.temperatura }}&deg;C &middot;
+                <i class="bi bi-droplet-half"></i> {{ item.estado.humedad }}% humedad
+              </p>
+            } @else {
+              <p class="card-text small text-muted">Sin lecturas de sensores todavía</p>
+            }
+          </div>
         </div>
       </div>
-    </div>
-  }
-</div>
+    }
+  </div>
+}

@@ -1,0 +1,62 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-journal-text"></i> Materias</h2>
+  <button type="button" class="btn btn-primary" (click)="nuevo()">
+    <i class="bi bi-plus-lg"></i> Nueva materia
+  </button>
+</div>
+
+@if (enEdicion(); as materia) {
+  <div class="card mb-4">
+    <div class="card-body">
+      <h3 class="h5">{{ materia.idMateria ? 'Editar' : 'Nueva' }} materia</h3>
+      <form (ngSubmit)="guardar()" #form="ngForm" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Nombre</label>
+          <input class="form-control" name="nombre" [(ngModel)]="materia.nombre" required />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Grupo</label>
+          <input class="form-control" name="grupo" [(ngModel)]="materia.grupo" required />
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success" [disabled]="form.invalid">
+            <i class="bi bi-check-lg"></i> Guardar
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (cargando()) {
+  <p class="text-muted">Cargando...</p>
+} @else if (materias().length === 0) {
+  <div class="alert alert-info">No hay materias registradas.</div>
+} @else {
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Grupo</th>
+        <th class="text-end">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (materia of materias(); track materia.idMateria) {
+        <tr>
+          <td>{{ materia.nombre }}</td>
+          <td>{{ materia.grupo }}</td>
+          <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="editar(materia)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminar(materia)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

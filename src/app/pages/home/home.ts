@@ -1,45 +1,54 @@
-import { Component, VERSION, inject, signal } from '@angular/core';
-import { ToastrService } from 'ngx-toastr';
+import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
-import { Typewriter } from '../../components/typewriter/typewriter';
-import { GithubContributorService } from '../../services/github-contributor.service';
-import { Tech, WebDevTecService } from '../../services/web-dev-tec.service';
+import { EstadoLaboratorio, Laboratorio } from '../../models/laboratorio.model';
+import { LaboratorioService } from '../../services/laboratorio.service';
 
-function shuffled<T>(items: T[]): T[] {
-  return items
-    .map((item) => ({ item, rank: Math.random() }))
-    .sort((a, b) => a.rank - b.rank)
-    .map(({ item }) => item);
+interface LaboratorioConEstado {
+  laboratorio: Laboratorio;
+  estado: EstadoLaboratorio | null;
 }
 
 @Component({
   selector: 'app-home',
-  imports: [Typewriter],
+  imports: [RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.scss'
 })
 export class Home {
-  private readonly webDevTec = inject(WebDevTecService);
-  private readonly githubContributor = inject(GithubContributorService);
-  private readonly toastr = inject(ToastrService);
+  private readonly laboratorioService = inject(LaboratorioService);
 
-  readonly angularVersion = VERSION.full;
-  readonly classAnimation = signal('');
-  readonly awesomeThings = signal<Tech[]>(shuffled(this.webDevTec.getTec()));
-  readonly typewriterWords = signal<string[]>(['Angular', 'TypeScript', 'Bootstrap']);
+  readonly laboratorios = signal<LaboratorioConEstado[]>([]);
+  readonly cargando = signal(true);
+  readonly error = signal(false);
 
   constructor() {
-    this.githubContributor.getContributors(10).subscribe((contributors) => {
-      this.typewriterWords.update((words) => [...words, ...contributors.map((c) => c.login)]);
+    this.laboratorioService.getAll().subscribe({
+      next: (laboratorios) => this.cargarEstados(laboratorios),
+      error: () => {
+        this.cargando.set(false);
+        this.error.set(true);
+      }
     });
-
-    setTimeout(() => this.classAnimation.set('animate__rubberBand'), 4000);
   }
 
-  showToastr(): void {
-    this.toastr.info(
-      `Migrated from AngularJS to <b>Angular ${this.angularVersion}</b> with <b>Bootstrap 5</b>.`
+  private cargarEstados(laboratorios: Laboratorio[]): void {
+    if (laboratorios.length === 0) {
+      this.cargando.set(false);
+      return;
+    }
+
+    const estados$ = laboratorios.map((laboratorio) =>
+      this.laboratorioService
+        .getUltimoEstado(laboratorio.idLaboratorio as number)
+        .pipe(catchError(() => of(null)))
     );
-    this.classAnimation.set('');
+
+    forkJoin(estados$).subscribe((estados) => {
+      this.laboratorios.set(laboratorios.map((laboratorio, index) => ({ laboratorio, estado: estados[index] })));
+      this.cargando.set(false);
+    });
   }
 }

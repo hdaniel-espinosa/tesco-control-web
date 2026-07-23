@@ -1,0 +1,62 @@
+<h2><i class="bi bi-credit-card-2-front"></i> Simulador de lector NFC</h2>
+<p class="text-muted">
+  Simula lo que haría el lector NFC de la puerta: envía el UID de la tarjeta y el laboratorio, y muestra
+  si el acceso se concede o se deniega.
+</p>
+
+<div class="card mb-4" style="max-width: 32rem;">
+  <div class="card-body">
+    <form (ngSubmit)="validar()" #form="ngForm" class="row g-3">
+      <div class="col-12">
+        <label class="form-label">UID de la tarjeta</label>
+        <input
+          class="form-control"
+          name="idTarjeta"
+          [ngModel]="idTarjeta()"
+          (ngModelChange)="idTarjeta.set($event)"
+          placeholder="p. ej. 04A1B2C3D4"
+          required
+        />
+      </div>
+      <div class="col-12">
+        <label class="form-label">Laboratorio</label>
+        <select
+          class="form-select"
+          name="idLaboratorio"
+          [ngModel]="idLaboratorio()"
+          (ngModelChange)="idLaboratorio.set($event)"
+          required
+        >
+          @for (laboratorio of laboratorios(); track laboratorio.idLaboratorio) {
+            <option [ngValue]="laboratorio.idLaboratorio">{{ laboratorio.nombre }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || validando()">
+          @if (validando()) {
+            <span class="spinner-border spinner-border-sm"></span> Validando...
+          } @else {
+            <i class="bi bi-credit-card-2-front"></i> Simular lectura
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+@if (resultado(); as resultado) {
+  <div class="alert" [class.alert-success]="resultado.acceso" [class.alert-danger]="!resultado.acceso" style="max-width: 32rem;">
+    <h4 class="alert-heading h5">
+      @if (resultado.acceso) {
+        <i class="bi bi-unlock-fill"></i> Acceso concedido
+      } @else {
+        <i class="bi bi-lock-fill"></i> Acceso denegado
+      }
+    </h4>
+    <p class="mb-1">{{ resultado.mensaje }}</p>
+    @if (resultado.usuario) {
+      <p class="mb-0 small">Maestro: {{ resultado.usuario }}</p>
+    }
+  </div>
+}
