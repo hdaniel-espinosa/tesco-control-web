@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+
+import { AuthService } from '../../services/auth.service';
 
 const RELATIVE_TIME_DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
   { amount: 60, unit: 'seconds' },
@@ -33,8 +35,18 @@ function formatRelativeTime(from: number): string {
   styleUrl: './navbar.scss'
 })
 export class Navbar {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   // Original application creation date, kept from the AngularJS version.
   private readonly creationDate = 1511676097403;
 
   protected readonly relativeDate = formatRelativeTime(this.creationDate);
+  protected readonly isAuthenticated = this.authService.isAuthenticated;
+  protected readonly username = this.authService.username;
+
+  cerrarSesion(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }
