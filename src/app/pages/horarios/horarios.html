@@ -1,0 +1,101 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-calendar-week"></i> Horarios</h2>
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="nuevo()"
+    [disabled]="laboratorios().length === 0 || materias().length === 0"
+  >
+    <i class="bi bi-plus-lg"></i> Nuevo horario
+  </button>
+</div>
+
+@if (!cargando() && (laboratorios().length === 0 || materias().length === 0)) {
+  <div class="alert alert-warning">
+    Necesitas al menos un laboratorio y una materia registrados antes de crear horarios.
+  </div>
+}
+
+@if (enEdicion(); as horario) {
+  <div class="card mb-4">
+    <div class="card-body">
+      <h3 class="h5">{{ horario.idHorario ? 'Editar' : 'Nuevo' }} horario</h3>
+      <form (ngSubmit)="guardar()" #form="ngForm" class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Día</label>
+          <select class="form-select" name="dia" [(ngModel)]="horario.dia" required>
+            @for (dia of dias; track dia) {
+              <option [value]="dia">{{ dia }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Hora de inicio</label>
+          <input class="form-control" type="time" name="horaInicio" [(ngModel)]="horario.horaInicio" required />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Hora de término</label>
+          <input class="form-control" type="time" name="horaTermino" [(ngModel)]="horario.horaTermino" required />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Laboratorio</label>
+          <select class="form-select" name="idLaboratorio" [(ngModel)]="horario.idLaboratorio" required>
+            @for (laboratorio of laboratorios(); track laboratorio.idLaboratorio) {
+              <option [ngValue]="laboratorio.idLaboratorio">{{ laboratorio.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Materia</label>
+          <select class="form-select" name="idMateria" [(ngModel)]="horario.idMateria" required>
+            @for (materia of materias(); track materia.idMateria) {
+              <option [ngValue]="materia.idMateria">{{ materia.nombre }} ({{ materia.grupo }})</option>
+            }
+          </select>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success" [disabled]="form.invalid">
+            <i class="bi bi-check-lg"></i> Guardar
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (cargando()) {
+  <p class="text-muted">Cargando...</p>
+} @else if (horarios().length === 0) {
+  <div class="alert alert-info">No hay horarios registrados.</div>
+} @else {
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Día</th>
+        <th>Horario</th>
+        <th>Laboratorio</th>
+        <th>Materia</th>
+        <th class="text-end">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (horario of horarios(); track horario.idHorario) {
+        <tr>
+          <td>{{ horario.dia }}</td>
+          <td>{{ horario.horaInicio }} &ndash; {{ horario.horaTermino }}</td>
+          <td>{{ nombreLaboratorio(horario.idLaboratorio) }}</td>
+          <td>{{ nombreMateria(horario.idMateria) }}</td>
+          <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="editar(horario)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminar(horario)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

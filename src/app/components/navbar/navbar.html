@@ -18,13 +18,30 @@
     <div class="collapse navbar-collapse" id="appNavbarCollapse">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link active" routerLink="/">Home</a>
+          <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            >Inicio</a
+          >
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">About</a>
+          <a class="nav-link" routerLink="/maestros" routerLinkActive="active">Maestros</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Contact</a>
+          <a class="nav-link" routerLink="/tarjetas" routerLinkActive="active">Tarjetas</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/laboratorios" routerLinkActive="active">Laboratorios</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/materias" routerLinkActive="active">Materias</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/horarios" routerLinkActive="active">Horarios</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/registros" routerLinkActive="active">Bitácora</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/acceso" routerLinkActive="active">Simular acceso</a>
         </li>
       </ul>
 

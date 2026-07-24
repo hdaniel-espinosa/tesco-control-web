@@ -1,0 +1,169 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-person-badge"></i> Maestros</h2>
+  <button type="button" class="btn btn-primary" (click)="nuevo()">
+    <i class="bi bi-plus-lg"></i> Nuevo maestro
+  </button>
+</div>
+
+@if (enEdicion(); as usuario) {
+  <div class="card mb-4">
+    <div class="card-body">
+      <h3 class="h5">{{ usuario.idUsuario ? 'Editar' : 'Nuevo' }} maestro</h3>
+      <form (ngSubmit)="guardar()" #form="ngForm" class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Nombre</label>
+          <input class="form-control" name="nombre" [(ngModel)]="usuario.nombre" required />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Apellido paterno</label>
+          <input class="form-control" name="apPaterno" [(ngModel)]="usuario.apPaterno" required />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Apellido materno</label>
+          <input class="form-control" name="apMaterno" [(ngModel)]="usuario.apMaterno" required />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Correo</label>
+          <input class="form-control" type="email" name="correo" [(ngModel)]="usuario.correo" required />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Teléfono</label>
+          <input class="form-control" name="telefono" [(ngModel)]="usuario.telefono" required />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Tipo de usuario</label>
+          <input class="form-control" name="tipoUsuario" [(ngModel)]="usuario.tipoUsuario" required />
+        </div>
+        <div class="col-md-4 form-check form-switch mt-4">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="activo"
+            name="activo"
+            [(ngModel)]="usuario.activo"
+          />
+          <label class="form-check-label" for="activo">Activo</label>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-success" [disabled]="form.invalid">
+            <i class="bi bi-check-lg"></i> Guardar
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelar()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (gestionando(); as usuario) {
+  <div class="card mb-4 border-primary">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <h3 class="h5">
+          <i class="bi bi-gear"></i> Tarjeta y materias de {{ usuario.nombre }} {{ usuario.apPaterno }}
+        </h3>
+        <button type="button" class="btn-close" aria-label="Cerrar" (click)="cerrarGestion()"></button>
+      </div>
+
+      <h4 class="h6 mt-3">Tarjeta NFC</h4>
+      @if (tarjetaAsignada(); as idTarjeta) {
+        <p>
+          <i class="bi bi-credit-card-2-front text-success"></i> <code>{{ idTarjeta }}</code>
+          <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="desasignarTarjeta()">
+            Desasignar
+          </button>
+        </p>
+      } @else {
+        <div class="d-flex gap-2">
+          <select
+            class="form-select w-auto"
+            [ngModel]="tarjetaSeleccionada()"
+            (ngModelChange)="tarjetaSeleccionada.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+          >
+            <option value="" disabled selected>Selecciona una tarjeta</option>
+            @for (tarjeta of tarjetasDisponibles(); track tarjeta.idTarjeta) {
+              <option [value]="tarjeta.idTarjeta">{{ tarjeta.idTarjeta }} ({{ tarjeta.tipo }})</option>
+            }
+          </select>
+          <button
+            type="button"
+            class="btn btn-outline-primary"
+            [disabled]="!tarjetaSeleccionada()"
+            (click)="asignarTarjeta()"
+          >
+            Asignar
+          </button>
+        </div>
+      }
+
+      <h4 class="h6 mt-4">Materias que imparte</h4>
+      @if (materias().length === 0) {
+        <p class="text-muted">No hay materias registradas.</p>
+      } @else {
+        <div class="row">
+          @for (materia of materias(); track materia.idMateria) {
+            <div class="col-md-4 form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [id]="'materia-' + materia.idMateria"
+                [checked]="tieneMateria(materia.idMateria!)"
+                (change)="toggleMateria(materia.idMateria!, !tieneMateria(materia.idMateria!))"
+              />
+              <label class="form-check-label" [for]="'materia-' + materia.idMateria">
+                {{ materia.nombre }} ({{ materia.grupo }})
+              </label>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@if (cargando()) {
+  <p class="text-muted">Cargando...</p>
+} @else if (usuarios().length === 0) {
+  <div class="alert alert-info">No hay maestros registrados.</div>
+} @else {
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Teléfono</th>
+        <th>Estado</th>
+        <th class="text-end">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (usuario of usuarios(); track usuario.idUsuario) {
+        <tr>
+          <td>{{ usuario.nombre }} {{ usuario.apPaterno }} {{ usuario.apMaterno }}</td>
+          <td>{{ usuario.correo }}</td>
+          <td>{{ usuario.telefono }}</td>
+          <td>
+            @if (usuario.activo) {
+              <span class="badge text-bg-success">Activo</span>
+            } @else {
+              <span class="badge text-bg-secondary">Inactivo</span>
+            }
+          </td>
+          <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="gestionar(usuario)">
+              <i class="bi bi-credit-card-2-front"></i> Tarjeta/materias
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="editar(usuario)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="eliminar(usuario)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
