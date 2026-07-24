@@ -20,6 +20,8 @@ export class Acceso {
   readonly laboratorios = signal<Laboratorio[]>([]);
   readonly idTarjeta = signal('');
   readonly idLaboratorio = signal<number | null>(null);
+  readonly usarHorarioSimulado = signal(false);
+  readonly horarioSimulado = signal(this.horarioActualParaInput());
   readonly validando = signal(false);
   readonly resultado = signal<AccesoResponse | null>(null);
 
@@ -33,6 +35,12 @@ export class Acceso {
     });
   }
 
+  private horarioActualParaInput(): string {
+    const ahora = new Date();
+    ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
+    return ahora.toISOString().slice(0, 16);
+  }
+
   validar(): void {
     const idTarjeta = this.idTarjeta().trim();
     const idLaboratorio = this.idLaboratorio();
@@ -40,10 +48,14 @@ export class Acceso {
       return;
     }
 
+    const fechaHoraSimulada = this.usarHorarioSimulado() && this.horarioSimulado()
+      ? this.horarioSimulado()
+      : undefined;
+
     this.validando.set(true);
     this.resultado.set(null);
 
-    this.accesoService.validar({ idTarjeta, idLaboratorio }).subscribe({
+    this.accesoService.validar({ idTarjeta, idLaboratorio, fechaHoraSimulada }).subscribe({
       next: (respuesta) => {
         this.resultado.set(respuesta);
         this.validando.set(false);
