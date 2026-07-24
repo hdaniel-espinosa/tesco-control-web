@@ -33,6 +33,37 @@
         </select>
       </div>
       <div class="col-12">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="usarHorarioSimulado"
+            name="usarHorarioSimulado"
+            [ngModel]="usarHorarioSimulado()"
+            (ngModelChange)="usarHorarioSimulado.set($event)"
+          />
+          <label class="form-check-label" for="usarHorarioSimulado">
+            Usar horario simulado (para pruebas, sin importar la hora real)
+          </label>
+        </div>
+      </div>
+      @if (usarHorarioSimulado()) {
+        <div class="col-12">
+          <label class="form-label">Fecha y hora simulada</label>
+          <input
+            class="form-control"
+            type="datetime-local"
+            name="horarioSimulado"
+            [ngModel]="horarioSimulado()"
+            (ngModelChange)="horarioSimulado.set($event)"
+            required
+          />
+          <div class="form-text">
+            Se usará esta fecha/hora en lugar de la actual para evaluar el horario de la materia.
+          </div>
+        </div>
+      }
+      <div class="col-12">
         <button type="submit" class="btn btn-primary" [disabled]="form.invalid || validando()">
           @if (validando()) {
             <span class="spinner-border spinner-border-sm"></span> Validando...
