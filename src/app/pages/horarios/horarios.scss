@@ -1,0 +1,33 @@
+.calendario-header {
+  height: 1.5rem;
+}
+
+.calendario-columna {
+  min-width: 0;
+  cursor: pointer;
+}
+
+.calendario-columna .calendario-body {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--bs-border-color) 0,
+    var(--bs-border-color) 1px,
+    transparent 1px,
+    transparent 50px
+  );
+}
+
+.calendario-hora-label {
+  transform: translateY(-0.6em);
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+}
+
+.calendario-bloque {
+  left: 2px;
+  right: 2px;
+  overflow: hidden;
+  cursor: pointer;
+  font-size: 0.75rem;
+  line-height: 1.1;
+}

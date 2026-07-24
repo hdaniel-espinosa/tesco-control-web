@@ -16,6 +16,68 @@
   </div>
 }
 
+@if (!cargando() && laboratorios().length > 0) {
+  <div class="mb-4">
+    <label class="form-label">Vista semanal de un laboratorio</label>
+    <select
+      class="form-select w-auto"
+      [ngModel]="laboratorioCalendario()"
+      (ngModelChange)="laboratorioCalendario.set($event)"
+      [ngModelOptions]="{ standalone: true }"
+    >
+      <option [ngValue]="null">Selecciona un laboratorio&hellip;</option>
+      @for (laboratorio of laboratorios(); track laboratorio.idLaboratorio) {
+        <option [ngValue]="laboratorio.idLaboratorio">{{ laboratorio.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  @if (laboratorioCalendario()) {
+    <div class="card mb-4">
+      <div class="card-body">
+        <p class="text-muted small mb-2">
+          Haz clic en un espacio vacío del calendario para dar de alta un horario nuevo, o en un horario
+          existente para modificarlo.
+        </p>
+        <div class="d-flex">
+          <div style="width: 3rem;">
+            <div class="calendario-header"></div>
+            <div class="position-relative" [style.height.px]="alturaCalendarioPx">
+              @for (hora of horasEtiqueta; track hora) {
+                <div class="calendario-hora-label position-absolute" [style.top.%]="porcentajeHora(hora)">
+                  {{ hora }}:00
+                </div>
+              }
+            </div>
+          </div>
+          @for (dia of dias; track dia) {
+            <div class="calendario-columna flex-fill border-start">
+              <div class="calendario-header text-center small fw-bold">{{ dia }}</div>
+              <div
+                class="calendario-body position-relative"
+                [style.height.px]="alturaCalendarioPx"
+                (click)="onColumnClick(dia, $event)"
+              >
+                @for (bloque of bloquesDelDia(dia); track bloque.horario.idHorario) {
+                  <div
+                    class="calendario-bloque position-absolute bg-primary text-white rounded p-1"
+                    [style.top.%]="bloque.topPct"
+                    [style.height.%]="bloque.heightPct"
+                    (click)="onBlockClick(bloque.horario, $event)"
+                  >
+                    <div>{{ bloque.horario.horaInicio }}&ndash;{{ bloque.horario.horaTermino }}</div>
+                    <div>{{ nombreMateria(bloque.horario.idMateria) }}</div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+}
+
 @if (enEdicion(); as horario) {
   <div class="card mb-4">
     <div class="card-body">

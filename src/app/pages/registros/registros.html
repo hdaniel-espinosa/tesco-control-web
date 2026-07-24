@@ -23,6 +23,7 @@
       <tr>
         <th>Fecha y hora</th>
         <th>Tarjeta</th>
+        <th>Maestro</th>
         <th>Laboratorio</th>
         <th>Resultado</th>
       </tr>
@@ -32,6 +33,7 @@
         <tr>
           <td>{{ registro.fechaHora | date: 'short' }}</td>
           <td><code>{{ registro.idTarjeta }}</code></td>
+          <td>{{ registro.nombreMaestro ?? '—' }}</td>
           <td>{{ nombreLaboratorio(registro.idLaboratorio) }}</td>
           <td>
             @if (registro.abrio) {

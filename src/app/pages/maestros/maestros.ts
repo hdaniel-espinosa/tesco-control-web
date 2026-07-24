@@ -3,9 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { forkJoin } from 'rxjs';
 
+import { HorarioDetalle } from '../../models/horario.model';
 import { Materia } from '../../models/materia.model';
 import { Tarjeta } from '../../models/tarjeta.model';
 import { Usuario } from '../../models/usuario.model';
+import { HorarioService } from '../../services/horario.service';
 import { MateriaService } from '../../services/materia.service';
 import { TarjetaService } from '../../services/tarjeta.service';
 import { UsuarioService } from '../../services/usuario.service';
@@ -29,6 +31,7 @@ export class Maestros {
   private readonly usuarioService = inject(UsuarioService);
   private readonly tarjetaService = inject(TarjetaService);
   private readonly materiaService = inject(MateriaService);
+  private readonly horarioService = inject(HorarioService);
   private readonly toastr = inject(ToastrService);
 
   readonly usuarios = signal<Usuario[]>([]);
@@ -41,6 +44,7 @@ export class Maestros {
   readonly tarjetaAsignada = signal<string | null>(null);
   readonly materiasAsignadas = signal<Set<number>>(new Set());
   readonly tarjetaSeleccionada = signal<string>('');
+  readonly horariosDelMaestro = signal<HorarioDetalle[]>([]);
 
   constructor() {
     this.cargar();
@@ -132,10 +136,20 @@ export class Maestros {
       },
       error: () => this.toastr.error('No se pudo cargar la tarjeta y materias del maestro')
     });
+
+    this.cargarHorarios(usuario.idUsuario);
+  }
+
+  private cargarHorarios(idUsuario: number): void {
+    this.horarioService.getDeUsuario(idUsuario).subscribe({
+      next: (horarios) => this.horariosDelMaestro.set(horarios),
+      error: () => this.toastr.error('No se pudieron cargar los horarios del maestro')
+    });
   }
 
   cerrarGestion(): void {
     this.gestionando.set(null);
+    this.horariosDelMaestro.set([]);
   }
 
   tarjetasDisponibles(): Tarjeta[] {
@@ -198,6 +212,7 @@ export class Maestros {
           materias.delete(idMateria);
         }
         this.materiasAsignadas.set(materias);
+        this.cargarHorarios(usuario.idUsuario as number);
       },
       error: () => this.toastr.error('No se pudo actualizar la materia del maestro')
     });

@@ -3,12 +3,15 @@ import { RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { EstadoLaboratorio, Laboratorio } from '../../models/laboratorio.model';
+import { HorarioProximo } from '../../models/horario.model';
+import { EstadoLaboratorio, Laboratorio, LaboratorioEstadoOcupacion } from '../../models/laboratorio.model';
+import { DashboardService } from '../../services/dashboard.service';
 import { LaboratorioService } from '../../services/laboratorio.service';
 
 interface LaboratorioConEstado {
   laboratorio: Laboratorio;
   estado: EstadoLaboratorio | null;
+  ocupacion: LaboratorioEstadoOcupacion | null;
 }
 
 @Component({
@@ -19,8 +22,10 @@ interface LaboratorioConEstado {
 })
 export class Home {
   private readonly laboratorioService = inject(LaboratorioService);
+  private readonly dashboardService = inject(DashboardService);
 
   readonly laboratorios = signal<LaboratorioConEstado[]>([]);
+  readonly horariosProximos = signal<HorarioProximo[]>([]);
   readonly cargando = signal(true);
   readonly error = signal(false);
 
@@ -32,6 +37,11 @@ export class Home {
         this.error.set(true);
       }
     });
+
+    this.dashboardService
+      .getHorariosProximos()
+      .pipe(catchError(() => of([])))
+      .subscribe((horariosProximos) => this.horariosProximos.set(horariosProximos));
   }
 
   private cargarEstados(laboratorios: Laboratorio[]): void {
@@ -46,8 +56,28 @@ export class Home {
         .pipe(catchError(() => of(null)))
     );
 
-    forkJoin(estados$).subscribe((estados) => {
-      this.laboratorios.set(laboratorios.map((laboratorio, index) => ({ laboratorio, estado: estados[index] })));
+    forkJoin({
+      estados: forkJoin(estados$),
+      ocupacion: this.dashboardService.getEstadoLaboratorios().pipe(catchError(() => of([])))
+    }).subscribe(({ estados, ocupacion }) => {
+      const ocupacionPorId = new Map(ocupacion.map((item) => [item.idLaboratorio, item]));
+
+      const combinados = laboratorios.map((laboratorio, index) => ({
+        laboratorio,
+        estado: estados[index],
+        ocupacion: ocupacionPorId.get(laboratorio.idLaboratorio as number) ?? null
+      }));
+
+      combinados.sort((a, b) => {
+        const ocupadoA = a.ocupacion?.ocupado ?? false;
+        const ocupadoB = b.ocupacion?.ocupado ?? false;
+        if (ocupadoA !== ocupadoB) {
+          return ocupadoA ? -1 : 1;
+        }
+        return a.laboratorio.nombre.localeCompare(b.laboratorio.nombre);
+      });
+
+      this.laboratorios.set(combinados);
       this.cargando.set(false);
     });
   }

@@ -4,4 +4,5 @@ export interface Registro {
   idLaboratorio: number;
   fechaHora: string;
   abrio: boolean;
+  nombreMaestro: string | null;
 }

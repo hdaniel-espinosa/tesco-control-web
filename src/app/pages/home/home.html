@@ -27,14 +27,42 @@
     Aún no hay laboratorios registrados. <a routerLink="/laboratorios">Da de alta el primero</a>.
   </div>
 } @else {
+  @if (horariosProximos().length > 0) {
+    <h2 class="h5 mb-3"><i class="bi bi-alarm"></i> Horarios próximos a comenzar</h2>
+    <ul class="list-group mb-4">
+      @for (item of horariosProximos(); track item.horario.idHorario) {
+        <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <span>
+            <strong>{{ item.horario.nombreLaboratorio }}</strong>
+            &middot; {{ item.horario.nombreMateria }}
+            @if (item.horario.maestros.length > 0) {
+              <span class="text-muted">({{ item.horario.maestros.join(', ') }})</span>
+            }
+          </span>
+          <span class="badge text-bg-warning">
+            {{ item.horario.horaInicio }} &middot; en {{ item.minutosParaInicio }} min
+          </span>
+        </li>
+      }
+    </ul>
+  }
+
+  <h2 class="h5 mb-3"><i class="bi bi-building"></i> Estado de los laboratorios</h2>
   <div class="row">
     @for (item of laboratorios(); track item.laboratorio.idLaboratorio) {
       <div class="col-sm-6 col-md-4 mb-4">
-        <div class="card h-100">
+        <div class="card h-100" [class.border-danger]="item.ocupacion?.ocupado">
           <div class="card-body">
-            <h3 class="card-title h5">
-              <i class="bi bi-building text-primary"></i> {{ item.laboratorio.nombre }}
-            </h3>
+            <div class="d-flex justify-content-between align-items-start">
+              <h3 class="card-title h5">
+                <i class="bi bi-building text-primary"></i> {{ item.laboratorio.nombre }}
+              </h3>
+              @if (item.ocupacion?.ocupado) {
+                <span class="badge text-bg-danger">Ocupado</span>
+              } @else {
+                <span class="badge text-bg-success">Libre</span>
+              }
+            </div>
             <p class="card-text text-muted mb-1">
               Edificio {{ item.laboratorio.edificio }} &middot; {{ item.laboratorio.nLugares }} lugares
             </p>
@@ -45,6 +73,21 @@
               </p>
             } @else {
               <p class="card-text small text-muted">Sin lecturas de sensores todavía</p>
+            }
+            @if (item.ocupacion?.ocupado && item.ocupacion?.horarioActual; as horarioActual) {
+              <p class="card-text small mb-0">
+                <i class="bi bi-journal-text"></i> {{ horarioActual.nombreMateria }}
+                @if (horarioActual.maestros.length > 0) {
+                  ({{ horarioActual.maestros.join(', ') }})
+                }
+                <br />
+                <i class="bi bi-clock"></i> hasta {{ horarioActual.horaTermino }}
+              </p>
+            } @else if (item.ocupacion?.proximoHorario; as proximoHorario) {
+              <p class="card-text small text-muted mb-0">
+                <i class="bi bi-clock-history"></i> Próxima clase: {{ proximoHorario.horaInicio }}
+                ({{ item.ocupacion?.minutosParaProximo }} min) &middot; {{ proximoHorario.nombreMateria }}
+              </p>
             }
           </div>
         </div>
