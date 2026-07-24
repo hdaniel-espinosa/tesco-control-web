@@ -1,0 +1,38 @@
+<div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+  <div class="card" style="max-width: 24rem; width: 100%;">
+    <div class="card-body">
+      <h2 class="h4 mb-3 text-center"><i class="bi bi-door-open"></i> Tesco Control</h2>
+      <form (ngSubmit)="ingresar()" #form="ngForm">
+        <div class="mb-3">
+          <label class="form-label">Usuario</label>
+          <input
+            class="form-control"
+            name="usuario"
+            [ngModel]="usuario()"
+            (ngModelChange)="usuario.set($event)"
+            required
+            autofocus
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Contraseña</label>
+          <input
+            class="form-control"
+            type="password"
+            name="contrasena"
+            [ngModel]="contrasena()"
+            (ngModelChange)="contrasena.set($event)"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary w-100" [disabled]="form.invalid || ingresando()">
+          @if (ingresando()) {
+            <span class="spinner-border spinner-border-sm"></span> Ingresando...
+          } @else {
+            Ingresar
+          }
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
