@@ -18,10 +18,25 @@ const HORARIO_VACIO: Horario = {
   idMateria: 0
 };
 
+/** Franja del calendario semanal: cubre el día completo para no recortar horarios fuera de un rango fijo. */
+const CALENDARIO_INICIO_MIN = 0;
+const CALENDARIO_FIN_MIN = 24 * 60;
+const CALENDARIO_TOTAL_MIN = CALENDARIO_FIN_MIN - CALENDARIO_INICIO_MIN;
+const CALENDARIO_PX_POR_HORA = 50;
+const DURACION_POR_DEFECTO_MIN = 60;
+const SNAP_MIN = 30;
+
+interface BloqueCalendario {
+  horario: Horario;
+  topPct: number;
+  heightPct: number;
+}
+
 @Component({
   selector: 'app-horarios',
   imports: [FormsModule],
-  templateUrl: './horarios.html'
+  templateUrl: './horarios.html',
+  styleUrl: './horarios.scss'
 })
 export class Horarios {
   private readonly horarioService = inject(HorarioService);
@@ -36,10 +51,22 @@ export class Horarios {
   readonly cargando = signal(true);
   readonly enEdicion = signal<Horario | null>(null);
 
+  readonly laboratorioCalendario = signal<number | null>(null);
+
   readonly laboratoriosPorId = computed(
     () => new Map(this.laboratorios().map((laboratorio) => [laboratorio.idLaboratorio, laboratorio]))
   );
   readonly materiasPorId = computed(() => new Map(this.materias().map((materia) => [materia.idMateria, materia])));
+
+  readonly horasEtiqueta = Array.from(
+    { length: CALENDARIO_TOTAL_MIN / 60 + 1 },
+    (_, index) => CALENDARIO_INICIO_MIN / 60 + index
+  );
+  readonly alturaCalendarioPx = (CALENDARIO_TOTAL_MIN / 60) * CALENDARIO_PX_POR_HORA;
+
+  private readonly horariosDelLaboratorio = computed(() =>
+    this.horarios().filter((horario) => horario.idLaboratorio === this.laboratorioCalendario())
+  );
 
   constructor() {
     this.cargar();
@@ -74,10 +101,71 @@ export class Horarios {
     return materia ? `${materia.nombre} (${materia.grupo})` : `#${idMateria}`;
   }
 
+  porcentajeHora(hora: number): number {
+    return ((hora * 60 - CALENDARIO_INICIO_MIN) / CALENDARIO_TOTAL_MIN) * 100;
+  }
+
+  bloquesDelDia(dia: string): BloqueCalendario[] {
+    return this.horariosDelLaboratorio()
+      .filter((horario) => horario.dia === dia)
+      .map((horario) => {
+        const inicio = this.minutosDesde(horario.horaInicio);
+        const termino = this.minutosDesde(horario.horaTermino);
+        const topPct = this.aPorcentaje(inicio);
+        const finPct = this.aPorcentaje(termino);
+        return { horario, topPct, heightPct: Math.max(finPct - topPct, 2) };
+      });
+  }
+
+  private aPorcentaje(minutos: number): number {
+    const acotado = Math.min(Math.max(minutos, CALENDARIO_INICIO_MIN), CALENDARIO_FIN_MIN);
+    return ((acotado - CALENDARIO_INICIO_MIN) / CALENDARIO_TOTAL_MIN) * 100;
+  }
+
+  private minutosDesde(hora: string): number {
+    const [horas, minutos] = hora.split(':').map(Number);
+    return horas * 60 + minutos;
+  }
+
+  private formatoHora(minutos: number): string {
+    const horas = Math.floor(minutos / 60);
+    const mins = minutos % 60;
+    return `${String(horas).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+  }
+
+  onColumnClick(dia: string, event: MouseEvent): void {
+    const idLaboratorio = this.laboratorioCalendario();
+    if (!idLaboratorio) {
+      return;
+    }
+
+    const elemento = event.currentTarget as HTMLElement;
+    const rect = elemento.getBoundingClientRect();
+    const fraccion = (event.clientY - rect.top) / rect.height;
+    let inicioMin = CALENDARIO_INICIO_MIN + fraccion * CALENDARIO_TOTAL_MIN;
+    inicioMin = Math.round(inicioMin / SNAP_MIN) * SNAP_MIN;
+    inicioMin = Math.min(Math.max(inicioMin, CALENDARIO_INICIO_MIN), CALENDARIO_FIN_MIN - SNAP_MIN);
+    const terminoMin = Math.min(inicioMin + DURACION_POR_DEFECTO_MIN, CALENDARIO_FIN_MIN);
+
+    this.enEdicion.set({
+      ...HORARIO_VACIO,
+      dia,
+      horaInicio: this.formatoHora(inicioMin),
+      horaTermino: this.formatoHora(terminoMin),
+      idLaboratorio,
+      idMateria: this.materias()[0]?.idMateria ?? 0
+    });
+  }
+
+  onBlockClick(horario: Horario, event: MouseEvent): void {
+    event.stopPropagation();
+    this.editar(horario);
+  }
+
   nuevo(): void {
     this.enEdicion.set({
       ...HORARIO_VACIO,
-      idLaboratorio: this.laboratorios()[0]?.idLaboratorio ?? 0,
+      idLaboratorio: this.laboratorioCalendario() ?? this.laboratorios()[0]?.idLaboratorio ?? 0,
       idMateria: this.materias()[0]?.idMateria ?? 0
     });
   }

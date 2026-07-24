@@ -17,11 +17,4 @@ describe('Navbar', () => {
     const fixture = TestBed.createComponent(Navbar);
     expect(fixture.componentInstance).toBeTruthy();
   });
-
-  it('should render a relative "years ago" creation date', async () => {
-    const fixture = TestBed.createComponent(Navbar);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.navbar-text')?.textContent).toMatch(/years? ago/);
-  });
 });

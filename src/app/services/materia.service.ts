@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Materia } from '../models/materia.model';
+import { Usuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -29,6 +30,10 @@ export class MateriaService {
 
   getMateriasDeUsuario(idUsuario: number): Observable<number[]> {
     return this.http.get<number[]>(`${this.usuariosUrl}/${idUsuario}/materias`);
+  }
+
+  getMaestrosDeMateria(idMateria: number): Observable<Usuario[]> {
+    return this.http.get<Usuario[]>(`${this.baseUrl}/${idMateria}/maestros`);
   }
 
   asignarAUsuario(idUsuario: number, idMateria: number): Observable<string> {

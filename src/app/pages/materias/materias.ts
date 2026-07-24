@@ -1,8 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { Materia } from '../../models/materia.model';
+import { Usuario } from '../../models/usuario.model';
 import { MateriaService } from '../../services/materia.service';
 
 const MATERIA_VACIA: Materia = { nombre: '', grupo: '' };
@@ -17,6 +20,7 @@ export class Materias {
   private readonly toastr = inject(ToastrService);
 
   readonly materias = signal<Materia[]>([]);
+  readonly maestrosPorMateria = signal<Map<number, Usuario[]>>(new Map());
   readonly cargando = signal(true);
   readonly enEdicion = signal<Materia | null>(null);
 
@@ -29,13 +33,39 @@ export class Materias {
     this.materiaService.getAll().subscribe({
       next: (materias) => {
         this.materias.set(materias);
-        this.cargando.set(false);
+        this.cargarMaestros(materias);
       },
       error: () => {
         this.toastr.error('No se pudieron cargar las materias');
         this.cargando.set(false);
       }
     });
+  }
+
+  private cargarMaestros(materias: Materia[]): void {
+    if (materias.length === 0) {
+      this.maestrosPorMateria.set(new Map());
+      this.cargando.set(false);
+      return;
+    }
+
+    const maestros$ = materias.map((materia) =>
+      this.materiaService.getMaestrosDeMateria(materia.idMateria as number).pipe(catchError(() => of([])))
+    );
+
+    forkJoin(maestros$).subscribe((maestros) => {
+      this.maestrosPorMateria.set(
+        new Map(materias.map((materia, index) => [materia.idMateria as number, maestros[index]]))
+      );
+      this.cargando.set(false);
+    });
+  }
+
+  nombresMaestros(idMateria: number): string {
+    const maestros = this.maestrosPorMateria().get(idMateria) ?? [];
+    return maestros.length > 0
+      ? maestros.map((maestro) => `${maestro.nombre} ${maestro.apPaterno}`).join(', ')
+      : 'Sin maestro asignado';
   }
 
   nuevo(): void {

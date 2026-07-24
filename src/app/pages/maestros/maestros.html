@@ -119,6 +119,32 @@
           }
         </div>
       }
+
+      <h4 class="h6 mt-4">Horarios asignados</h4>
+      @if (horariosDelMaestro().length === 0) {
+        <p class="text-muted">Este maestro no tiene horarios asignados todavía.</p>
+      } @else {
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Día</th>
+              <th>Horario</th>
+              <th>Laboratorio</th>
+              <th>Materia</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (horario of horariosDelMaestro(); track horario.idHorario) {
+              <tr>
+                <td>{{ horario.dia }}</td>
+                <td>{{ horario.horaInicio }} &ndash; {{ horario.horaTermino }}</td>
+                <td>{{ horario.nombreLaboratorio }}</td>
+                <td>{{ horario.nombreMateria }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
   </div>
 }
