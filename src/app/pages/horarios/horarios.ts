@@ -18,9 +18,9 @@ const HORARIO_VACIO: Horario = {
   idMateria: 0
 };
 
-/** Franja del calendario semanal: cubre el día completo para no recortar horarios fuera de un rango fijo. */
-const CALENDARIO_INICIO_MIN = 0;
-const CALENDARIO_FIN_MIN = 24 * 60;
+/** Franja del calendario semanal: de 7:00 a 22:00. */
+const CALENDARIO_INICIO_MIN = 7 * 60;
+const CALENDARIO_FIN_MIN = 22 * 60;
 const CALENDARIO_TOTAL_MIN = CALENDARIO_FIN_MIN - CALENDARIO_INICIO_MIN;
 const CALENDARIO_PX_POR_HORA = 50;
 const DURACION_POR_DEFECTO_MIN = 60;
